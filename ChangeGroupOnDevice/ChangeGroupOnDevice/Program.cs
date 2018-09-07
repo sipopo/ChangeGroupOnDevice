@@ -10,6 +10,7 @@ namespace ChangeGroupOnDevice
 {
     class Program
     {
+
         static void Main(string[] args)
         {
 
@@ -19,11 +20,14 @@ namespace ChangeGroupOnDevice
                 PrincipalManagementSoap  PrinMan = new PrincipalManagementSoap();
                 PrinMan.Credentials = new NetworkCredential("IPTVServices", "P23R@vor", "BRMSK");
                 PrinMan.Url = "http://78.107.199.132/bss/PrincipalManagement.asmx";
-
-
-                string grName = "City_8";
+                                                                
+                string grName = Properties.Settings.Default.grName;
+                string old_group = Properties.Settings.Default.old_group;
+                string new_group = Properties.Settings.Default.new_group;
 
                 Log("Working with group " + grName);
+                Log("We change group " + old_group + " to " + new_group + " in city " + grName);
+                Console.WriteLine("We change group {0} to {1} in city {2}", old_group, new_group, grName);
                 Group[] Groups = PrinMan.ReadGroup(grName);
 
                 foreach (Group group in Groups)
@@ -41,15 +45,16 @@ namespace ChangeGroupOnDevice
                         i = i + 1; // temporary for testing
                         Console.WriteLine("Working with : " + account.ExternalID);
                         Log("Working with : " + account.ExternalID);
-                        ChangeDeviceCluster(account.ExternalID, PrinMan);
+                        //ChangeDeviceCluster(account.ExternalID, PrinMan);
 
                         if (i > 2) break; // temporary for testing
                     }
                 
                 }
-             
-            
-                Console.WriteLine("The count of groups " + Groups.Length.ToString());
+
+                //Check Corbinamsk00_5496044_1
+                //ChangeDeviceCluster("Corbinamsk00_5496044_1", PrinMan);
+
             } // try 
             catch (Exception e)
             {
@@ -67,9 +72,16 @@ namespace ChangeGroupOnDevice
 
         public static void ChangeDeviceCluster(string account, PrincipalManagementSoap PrinMan)
         {
-            try { 
+            try {
+                string old_group = Properties.Settings.Default.old_group;
+                string new_group = Properties.Settings.Default.new_group;
+
                 Account[] Accounts = PrinMan.ReadAccount(account);
-            
+
+                PrincipalManagementInterfaceSoap PrinInterface = new PrincipalManagementInterfaceSoap();
+                PrinInterface.Credentials = new NetworkCredential("IPTVServices", "P23R@vor", "BRMSK");
+                PrinInterface.Url = "http://78.107.199.132/bss/PrincipalManagement.asmx";
+
                 foreach (Account ac in Accounts)
                 {
                     Device[] devices = ac.Devices;
@@ -77,6 +89,36 @@ namespace ChangeGroupOnDevice
                     {
                         Log("Working with device " + dev.ExternalID );
                         Console.WriteLine("Working with device " + dev.ExternalID);
+
+                        DeviceGuidPrincipalId devGUID = new DeviceGuidPrincipalId();
+                        devGUID.Id = dev.ID;
+
+                        GroupMembership[] Groups = PrinInterface.GetGroupMemberships(devGUID);
+                        foreach (GroupMembership group in Groups)
+                        {
+                            GroupPrincipalExternalId groupExternalID = group.GroupExternalId;
+                            if  (groupExternalID.Id.ToString().Contains(old_group))
+                            {
+                                Console.WriteLine("We found old Group  " + old_group);
+
+                                Console.WriteLine("Try to change group " + old_group + " on " + new_group + " for " + dev.ExternalID);
+                                Log("Try to change group " + groupExternalID.Id + " on " + new_group + " for " + dev.ExternalID);
+                                // Here we must change cluster_group
+
+                                GroupPrincipalExternalId[] GroupsToRemove = new GroupPrincipalExternalId[1];
+                                GroupsToRemove[0] = groupExternalID;
+
+                                GroupPrincipalExternalId[] GroupsToAdd = new GroupPrincipalExternalId[1];
+                                GroupsToAdd[0] = new GroupPrincipalExternalId();
+                                GroupsToAdd[0].Id = new_group; // new_group;
+
+                                PrinInterface.RemoveGroupMemberships(devGUID, GroupsToRemove);
+                                PrinInterface.AddGroupMemberships(devGUID, GroupsToAdd);                                                                                                                                
+                            }                            
+                        }
+
+                        //
+                        
                     }
                 }
             } catch (Exception e)

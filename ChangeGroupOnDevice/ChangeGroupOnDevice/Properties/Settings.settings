@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ChangeGroupOnDevice.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="old_group" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Cluster_VD_VIP_3</Value>
+    </Setting>
+    <Setting Name="new_group" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Cluster_VD_VIP_1</Value>
+    </Setting>
+    <Setting Name="grName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">City_8</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
